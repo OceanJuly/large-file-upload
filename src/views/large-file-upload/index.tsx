@@ -9,6 +9,13 @@ import WorkerBuilder from '@/utils/worker-build'
 import { promiseScheduler } from '@/utils/requestPool'
 
 const CHUNK_SIZE: number = 10 * 1024 * 1024
+const defaultFileInfo: fileProps = {
+    name: '',
+    hash: '',
+    fileSize: 0,
+    requestList: [],
+    lastUploadPercent: 0
+}
 const columns: TableProps<tableProps>['columns'] = [
     {
         title: 'hash',
@@ -32,12 +39,7 @@ const columns: TableProps<tableProps>['columns'] = [
 ]
 
 function LargeFileUpload() {
-    const file = useRef<fileProps>({
-        name: '',
-        hash: '',
-        fileSize: 0,
-        requestList: []
-    })
+    const file = useRef<fileProps>(defaultFileInfo)
     const [hashPercent, setHashPercent] = useState<number>(0)
     const [chunks, setChunks] = useState<ChunkProps[]>([])
     const [requestList, setRequestList] = useState<XMLHttpRequest[]>([])
@@ -76,6 +78,7 @@ function LargeFileUpload() {
     }
 
     function clearData() {
+        file.current = defaultFileInfo
         setHashPercent(0)
     }
 
@@ -199,7 +202,11 @@ function LargeFileUpload() {
         const loadData = chunks
           .map((chunk) => chunk.size * chunk.progress)
           .reduce((acc, cur) => acc + cur)
-        return parseInt((loadData / file.current.fileSize).toFixed(2))
+        const percent = parseInt((loadData / file.current.fileSize).toFixed(2))
+        if (percent > file.current.lastUploadPercent) {
+            file.current.lastUploadPercent = percent
+            return percent
+        } else return file.current.lastUploadPercent
     }, [chunks])
     
     return (

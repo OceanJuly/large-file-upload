@@ -9,7 +9,8 @@ export interface fileProps {
     name: string,
     hash: string,
     fileSize: number,
-    requestList: XMLHttpRequest[]
+    requestList: XMLHttpRequest[],
+    lastUploadPercent: number
 }
 
 export interface ChunksData {
